@@ -6,9 +6,11 @@ from lib.helpers import read_hex
 
 # Project TODO: Is this the best choice of prime? Why? Why not? Feel free to replace!
 
+# Higher group = more secure but longer computation time
+
 #Video reference https://www.youtube.com/watch?v=M-0qt6tdHzk
 
-groups = {0:
+groups = {5:
         """
           FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
           29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
@@ -85,7 +87,7 @@ C2007CB8 A163BF05 98DA4836 1C55D39A 69163FA8 FD24CF5F
 670C354E 4ABC9804 F1746C08 CA237327 FFFFFFFF FFFFFFFF"""
 # Convert from the value supplied in the RFC to an integer
 #Prime modulus
-prime = read_hex(groups[0])
+prime = read_hex(groups[5])
 #Generator
 generator = 2
 
@@ -94,7 +96,7 @@ generator = 2
 def create_dh_key():
     # Creates a Diffie-Hellman key
     # Returns (public, private)
-    private= random.randint(0, int(2**8))
+    private= randint(0, prime)
     public = pow(generator,private,prime)
     return (public,private)
 
