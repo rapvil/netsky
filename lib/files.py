@@ -1,4 +1,6 @@
 import os
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
 
 # Instead of storing files on disk,
 # we'll save them in memory for simplicity
@@ -6,14 +8,17 @@ filestore = {}
 # Valuable data to be sent to the botmaster
 valuables = []
 
+
 ###
 
 def save_valuable(data):
     valuables.append(data)
 
+
 def encrypt_for_master(data):
     # Encrypt the file so it can only be read by the bot master
     return data
+
 
 def upload_valuables_to_pastebot(fn):
     # Encrypt the valuables so only the bot master can read them
@@ -28,17 +33,31 @@ def upload_valuables_to_pastebot(fn):
 
     print("Saved valuables to pastebot.net/%s for the botnet master" % fn)
 
+
 ###
 
 def verify_file(f):
-    # Verify the file was sent by the bot master
-    # TODO: For Part 2, you'll use public key crypto here
-    # Naive verification by ensuring the first line has the "passkey"
-    lines = f.split(bytes("\n", "ascii"), 1)
-    first_line = lines[0]
-    if first_line == bytes("Caesar", "ascii"):
+    # # Verify the file was sent by the bot master
+    # # Part 2, public key crypto here
+    # # Naive verification by ensuring the first line has the "passkey"
+    # lines = f.split(bytes("\n", "ascii"), 1)
+    # first_line = lines[0]
+    # if first_line == bytes("Caesar", "ascii"):
+    #     return True
+    # return False
+
+    key = RSA.importKey(open('pubKey.der').read())
+    cipher = PKCS1_OAP.new(key)
+
+    # verify
+    try:
+        message = cipher.decrypt(f)
+    except ValueError:
+        print("Incorrect Decryption")
+        return False
+    else:
         return True
-    return False
+
 
 def process_file(fn, f):
     if verify_file(f):
@@ -50,6 +69,7 @@ def process_file(fn, f):
     else:
         print("The file has not been signed by the botnet master")
 
+
 def download_from_pastebot(fn):
     # "Download" the file from pastebot.net
     # (i.e. pretend we are and grab it from disk)
@@ -60,12 +80,14 @@ def download_from_pastebot(fn):
     f = open(os.path.join("pastebot.net", fn), "rb").read()
     process_file(fn, f)
 
+
 def p2p_download_file(sconn):
     # Download the file from the other bot
     fn = str(sconn.recv(), "ascii")
     f = sconn.recv()
     print("Receiving %s via P2P" % fn)
     process_file(fn, f)
+
 
 ###
 
@@ -80,6 +102,7 @@ def p2p_upload_file(sconn, fn):
     print("Sending %s via P2P" % fn)
     sconn.send(fn)
     sconn.send(filestore[fn])
+
 
 def run_file(f):
     # If the file can be run,
